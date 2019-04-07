@@ -75,3 +75,15 @@ A drop shadow.
 
 1. Clean up the code, move in to functions and modules. (clean-up / organization)
 2. Make a proper command-line tool that accepts a code file. (organization)
+
+
+# Things we want to be command-line arguments
+
+1. Theme
+2. Font, font size, line spacing
+3. Programming language (autodetect?)
+4. Min/max window size (in columns)
+5. Window padding, window border radius
+6. Drop shadow params?
+7. Line ranges in the file.
+8. Highlight line(s)

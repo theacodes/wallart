@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from PIL import Image, ImageDraw
+from pygments.styles import get_style_by_name
 import pygments.formatters.img
 import witchhazel
 
@@ -31,7 +32,16 @@ def _get_minimum_window_width(font_name, font_size):
     return width
 
 
-def draw_window(contents: Image, padding: int = 20) -> Image:
+def draw_window(contents: Image, style: str, padding: int = 20) -> Image:
+    # Figure out the background color
+
+    # https://github.com/theacodes/witchhazel/issues/2
+    if style == "witchhazel":
+        background_color = witchhazel.WitchHazelStyle.background_color
+    else:
+        style_cls = get_style_by_name(style)
+        background_color = style_cls.background_color
+
     # Create a new blank image to draw the window frame and code onto.
     min_width = _get_minimum_window_width("Roboto Mono", font_size=32)
 
@@ -46,7 +56,7 @@ def draw_window(contents: Image, padding: int = 20) -> Image:
         window_img_draw,
         (0, 0, window_img.width, window_img.height),
         radius=20,
-        fill=witchhazel.WitchHazelStyle.background_color)
+        fill=background_color)
 
     # Paste in the generated code image.
     window_img.paste(contents, box=(padding, padding))

@@ -21,8 +21,10 @@ import pygments.formatters
 import witchhazel
 
 
-def highlight(code: str) -> Image:
-    style = witchhazel.WitchHazelStyle
+def highlight(code: str, style: str) -> Image:
+    # https://github.com/theacodes/witchhazel/issues/2
+    if style == "witchhazel":
+        style = witchhazel.WitchHazelStyle
 
     formatter = pygments.formatters.ImageFormatter(
         style=style,

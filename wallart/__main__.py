@@ -21,15 +21,16 @@ import wallart.window
 @click.command()
 @click.argument("input", type=click.File("r"))
 @click.argument("output", type=click.File("wb"))
-def main(input, output):
+@click.option("--style", help="Which Pygments style to use.", default="witchhazel.WitchHazel")
+def main(input, output, style: str):
     # Read the code file.
     code = input.read()
 
     # Use Pygments to create an image of the code file.
-    code_image = wallart.highlight.highlight(code)
+    code_image = wallart.highlight.highlight(code, style=style)
 
     # Draw the pretty window frame.
-    final_image = wallart.window.draw_window(code_image)
+    final_image = wallart.window.draw_window(code_image, style=style)
 
     final_image.save(output)
 
