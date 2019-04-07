@@ -79,9 +79,9 @@ A drop shadow.
 
 # Things we want to be command-line arguments
 
-1. Theme
+1. Theme (done)
 2. Font, font size, line spacing
-3. Programming language (autodetect?)
+3. Programming language (autodetect (done), but maybe want to have a seperate flag?)
 4. Min/max window size (in columns)
 5. Window padding, window border radius
 6. Drop shadow params?

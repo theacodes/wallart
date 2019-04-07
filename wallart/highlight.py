@@ -36,9 +36,15 @@ def highlight(code: str, style: str) -> Image:
         hl_color=None,
     )
 
+    lexer = pygments.lexers.guess_lexer(code)
+
+    # Force the Python 3 lexer.
+    if isinstance(lexer, pygments.lexers.PythonLexer):
+        lexer = pygments.lexers.Python3Lexer()
+
     pyg_image_data = pygments.highlight(
         code,
-        pygments.lexers.Python3Lexer(),
+        lexer,
         formatter)
 
     return Image.open(io.BytesIO(pyg_image_data))
