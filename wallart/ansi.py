@@ -15,6 +15,7 @@
 import re
 
 import pygments.lexer
+from PIL import Image, ImageDraw
 
 from wallart import iterm
 
@@ -36,8 +37,8 @@ class ConsoleOutputLexer(pygments.lexer.Lexer):
 
     def get_tokens_unprocessed(self, text: str):
         pos = 0
-        fg_color = (255, 255, 255)
-        bg_color = (0, 0, 0)
+        fg_color = self.theme.foreground_color
+        bg_color = None
         decoration = None
 
         for match in escape_re.finditer(text):
@@ -64,8 +65,7 @@ class ConsoleOutputLexer(pygments.lexer.Lexer):
                 bg_arg = int_or_none(args[1])
 
             if(style_arg == 0):
-                # Reset
-                fg_color = (255, 255, 255)
+                fg_color = self.theme.foreground_color
                 bg_color = None
                 decoration = None
 
@@ -96,6 +96,11 @@ class ConsoleOutputLexer(pygments.lexer.Lexer):
 
 
 class ConsoleImageFormatter(pygments.formatters.ImageFormatter):
+    """Modified from pygments.
+
+    _create_drawables replaces with ttype with just the color/decoration tuple.
+    format deals with drawing background colors where needed.
+    """
 
     def _create_drawables(self, tokensource):
         lineno = charno = maxcharno = 0
@@ -118,7 +123,8 @@ class ConsoleImageFormatter(pygments.formatters.ImageFormatter):
                             "italic": decoration == "italic",
                             "underline": decoration == "underline"
                         }),
-                        fill=fg_color
+                        fill=fg_color,
+                        bg=bg_color
                     )
                     charno += len(temp)
                     maxcharno = max(maxcharno, charno)
@@ -128,3 +134,48 @@ class ConsoleImageFormatter(pygments.formatters.ImageFormatter):
                     lineno += 1
         self.maxcharno = maxcharno
         self.maxlineno = lineno
+
+    def format(self, tokensource, outfile):
+        """
+        Format ``tokensource``, an iterable of ``(tokentype, tokenstring)``
+        tuples and write it into ``outfile``.
+
+        This implementation calculates where it should draw each token on the
+        pixmap, then calculates the required pixmap size and draws the items.
+        """
+        self._create_drawables(tokensource)
+        self._draw_line_numbers()
+        im = Image.new(
+            'RGB',
+            self._get_image_size(self.maxcharno, self.maxlineno),
+            self.background_color
+        )
+        self._paint_line_number_bg(im)
+        draw = ImageDraw.Draw(im)
+
+        # Highlight
+        if self.hl_lines:
+            x = (
+                self.image_pad + self.line_number_width
+                - self.line_number_pad + 1)
+            recth = self._get_line_height()
+            rectw = im.size[0] - x
+            for linenumber in self.hl_lines:
+                y = self._get_line_y(linenumber - 1)
+                draw.rectangle([(x, y), (x + rectw, y + recth)],
+                               fill=self.hl_color)
+
+        for pos, value, font, kw in self.drawables:
+            bg = kw.pop("bg", None)
+            if bg:
+                draw.rectangle(
+                    [
+                        pos[0],
+                        pos[1],
+                        pos[0] + self.fontw * len(value),
+                        pos[1] + self._get_line_height()
+                    ],
+                    fill=bg)
+            draw.text(pos, value, font=font, **kw)
+
+        im.save(outfile, self.image_format.upper())
