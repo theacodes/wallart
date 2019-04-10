@@ -21,13 +21,15 @@ import wallart.window
 @click.command()
 @click.argument("input", type=click.File("r"))
 @click.argument("output", type=click.File("wb"))
-@click.option("--style", help="Which Pygments style to use.", default="witchhazel.WitchHazel")
-def main(input, output, style: str):
+@click.option("--ansi", help="Whether or not to process this as ANSI terminal output", default=False, type=bool)
+@click.option("--style", help="Which Pygments style to use.", default="witchhazel")
+@click.option("--term-theme", help="Which terminal theme to use, should be a path to an itermcolors file.", default=None)
+def main(input, output, ansi: bool, style: str, term_theme: str):
     # Read the code file.
     code = input.read()
 
     # Use Pygments to create an image of the code file.
-    code_image = wallart.highlight.highlight(code, style=style)
+    code_image = wallart.highlight.highlight(code, ansi=ansi, style=style, term_theme=term_theme)
 
     # Draw the pretty window frame.
     final_image = wallart.window.draw_window(code_image, style=style)

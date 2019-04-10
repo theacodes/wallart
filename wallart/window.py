@@ -55,7 +55,7 @@ def draw_window(contents: Image, style: str, padding: int = 20) -> Image:
     wallart.gfx.rounded_rectangle(
         window_img_draw,
         (0, 0, window_img.width, window_img.height),
-        radius=20,
+        radius=10,
         fill=background_color)
 
     # Paste in the generated code image.

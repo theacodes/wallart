@@ -13,34 +13,55 @@
 # limitations under the License.
 
 import io
+import pkgutil
 
 from PIL import Image
 import pygments
 import pygments.lexers
 import pygments.formatters
+import pygments.style
 import witchhazel
 
+import wallart.ansi
+import wallart.iterm
 
-def highlight(code: str, style: str) -> Image:
+
+def highlight(code: str, ansi: str, style: str, term_theme: str) -> Image:
     # https://github.com/theacodes/witchhazel/issues/2
     if style == "witchhazel":
         style = witchhazel.WitchHazelStyle
 
-    formatter = pygments.formatters.ImageFormatter(
+    if not ansi:
+        formatter_cls = pygments.formatters.ImageFormatter
+    else:
+        formatter_cls = wallart.ansi.ConsoleImageFormatter
+
+    formatter = formatter_cls(
         style=style,
         line_pad=2,
-        font_name="Roboto Mono",
+        font_name="Roboto Mono Emoji",
         font_size=32,
         line_numbers=False,
         hl_lines=[],
         hl_color=None,
     )
 
-    lexer = pygments.lexers.guess_lexer(code)
+    if not ansi:
+        lexer = pygments.lexers.guess_lexer(code)
 
-    # Force the Python 3 lexer.
-    if isinstance(lexer, pygments.lexers.PythonLexer):
-        lexer = pygments.lexers.Python3Lexer()
+        # Force the Python 3 lexer.
+        if isinstance(lexer, pygments.lexers.PythonLexer):
+            lexer = pygments.lexers.Python3Lexer()
+
+    else:
+        if not term_theme:
+            term_theme = wallart.iterm.load(
+                pkgutil.get_data("wallart", "Dracula.itermcolors"))
+        else:
+            with open(term_theme, "r") as fh:
+                term_theme = wallart.iterm.load(fh.read())
+
+        lexer = wallart.ansi.ConsoleOutputLexer(theme=term_theme)
 
     pyg_image_data = pygments.highlight(
         code,
